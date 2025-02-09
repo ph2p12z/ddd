@@ -2,7 +2,7 @@ if not _G.Initialized then
 	_G.Initialized = true;
 	local RunService = game:GetService("RunService");
 	local Camera = workspace.CurrentCamera;
-	local IgnoreFolder = workspace:WaitForChild("Ignore");
+	local Ignore = workspace.Const:WaitForChild("Ignore");
 	local WeaponInfo = {};
 	local SleepAnimationId = "rbxassetid://13280887764";
 
